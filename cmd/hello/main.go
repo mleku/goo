@@ -34,7 +34,9 @@ func (app *WidgetApp) Init() (err error) {
 			).
 			Child(
 				widget.Center(
-					widget.Fill(1.0, 1.0, 1.0, 0.75, widget.NewRigidConstraints(64, 64)),
+					widget.NewFixedSize(64, 64,
+						widget.Fill(1.0, 1.0, 1.0, 0.75),
+					),
 				),
 			),
 	)

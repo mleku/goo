@@ -6,47 +6,14 @@ import (
 
 // Filler is a widget that fills its box with a solid color
 type Filler struct {
-	color       [4]float32
-	constraints Constraints
+	color [4]float32
 }
 
-// Fill creates a new Fill widget that automatically fills its parent container.
-// If no constraints are provided, uses default flexible constraints to fill the parent.
-func Fill(red, green, blue, alpha float32, constraints ...Constraints) *Filler {
-	var c Constraints
-	if len(constraints) > 0 {
-		c = constraints[0]
-	} else {
-		// Default to filling parent container
-		c = NewFlexConstraints(0, 0, 1e9, 1e9)
-	}
+// Fill creates a new Fill widget that fills its container with the specified color.
+// The fill always fills to the edge of its box when calculated.
+func Fill(red, green, blue, alpha float32) *Filler {
 	return &Filler{
-		color:       [4]float32{red, green, blue, alpha},
-		constraints: c,
-	}
-}
-
-// NewFlexFill creates a flexible Fill widget with min/max constraints
-func NewFlexFill(red, green, blue, alpha, minWidth, minHeight, maxWidth, maxHeight float32) *Filler {
-	return &Filler{
-		color:       [4]float32{red, green, blue, alpha},
-		constraints: NewFlexConstraints(minWidth, minHeight, maxWidth, maxHeight),
-	}
-}
-
-// NewFlexFillAt creates a flexible Fill widget at a specific position
-func NewFlexFillAt(red, green, blue, alpha, minWidth, minHeight, maxWidth, maxHeight, top, left float32) *Filler {
-	return &Filler{
-		color:       [4]float32{red, green, blue, alpha},
-		constraints: NewFlexConstraintsAt(minWidth, minHeight, maxWidth, maxHeight, top, left),
-	}
-}
-
-// NewRigidFillAt creates a rigid Fill widget at a specific position
-func NewRigidFillAt(red, green, blue, alpha, width, height, top, left float32) *Filler {
-	return &Filler{
-		color:       [4]float32{red, green, blue, alpha},
-		constraints: NewRigidConstraintsAt(width, height, top, left),
+		color: [4]float32{red, green, blue, alpha},
 	}
 }
 
@@ -57,7 +24,8 @@ func (f *Filler) SetColor(red, green, blue, alpha float32) {
 
 // GetConstraints returns the size constraints for this Fill widget
 func (f *Filler) GetConstraints() Constraints {
-	return f.constraints
+	// Fill widgets always have flexible constraints to fill their container
+	return NewFlexConstraints(0, 0, 1e9, 1e9)
 }
 
 // Render implements the Widget interface for Fill

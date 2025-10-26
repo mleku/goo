@@ -670,6 +670,58 @@ func (d *DirectionWidget) GetConstraints() Constraints {
 	return d.constraints
 }
 
+// FixedSize is a widget that constrains its child to a fixed size
+type FixedSize struct {
+	width       float32
+	height      float32
+	child       Widget
+	constraints Constraints
+}
+
+// NewFixedSize creates a new FixedSize widget with the specified dimensions
+func NewFixedSize(width, height float32, child Widget) *FixedSize {
+	return &FixedSize{
+		width:       width,
+		height:      height,
+		child:       child,
+		constraints: NewRigidConstraints(width, height),
+	}
+}
+
+// GetConstraints returns the size constraints for this FixedSize widget
+func (f *FixedSize) GetConstraints() Constraints {
+	return f.constraints
+}
+
+// Render implements the Widget interface for FixedSize
+func (f *FixedSize) Render(ctx *Context, box *Box) (usedSize Size, err error) {
+	if f.child == nil {
+		return box.Size, nil
+	}
+
+	// Create child box with fixed size
+	childBox := &Box{
+		Position: box.Position,
+		Size: Size{
+			Width:  f.width,
+			Height: f.height,
+		},
+		Constraints: f.child.GetConstraints(),
+	}
+
+	// Create child context
+	childCtx := &Context{
+		WindowWidth:    ctx.WindowWidth,
+		WindowHeight:   ctx.WindowHeight,
+		ParentBox:      childBox,
+		AvailableSize:  childBox.Size,
+		PaintedRegions: ctx.PaintedRegions,
+	}
+
+	// Render child
+	return f.child.Render(childCtx, childBox)
+}
+
 // Render implements the Widget interface for DirectionWidget
 func (d *DirectionWidget) Render(ctx *Context, box *Box) (usedSize Size, err error) {
 	if d.child == nil {
