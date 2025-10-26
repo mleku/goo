@@ -95,7 +95,7 @@ func (app *WidgetApp) Init() (err error) {
 }
 
 // Render renders the widget tree
-func (app *WidgetApp) Render(width, height int, mouseX, mouseY float64) (err error) {
+func (app *WidgetApp) Render(width, height int, mouseX, mouseY float64, cursorInWindow bool) (err error) {
 	// Set the clear color to black
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
@@ -130,8 +130,10 @@ func (app *WidgetApp) Render(width, height int, mouseX, mouseY float64) (err err
 		return
 	}
 
-	// Draw crosshair at mouse cursor position
-	drawCrosshair(float32(mouseX), float32(height)-float32(mouseY), width, height)
+	// Draw crosshair at mouse cursor position only if cursor is in window
+	if cursorInWindow {
+		drawCrosshair(float32(mouseX), float32(height)-float32(mouseY), width, height)
+	}
 
 	return
 }

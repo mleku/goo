@@ -23,6 +23,7 @@ type Window struct {
 	resizeThreshold  int
 	mouseX           float64
 	mouseY           float64
+	cursorInWindow   bool
 }
 
 func init() {
@@ -44,7 +45,7 @@ func New(width, height int, title string) (w *Window, err error) {
 }
 
 // Run starts the window and runs the application main loop
-func (w *Window) Run(renderFunc func(windowWidth, windowHeight int, mouseX, mouseY float64) error) (err error) {
+func (w *Window) Run(renderFunc func(windowWidth, windowHeight int, mouseX, mouseY float64, cursorInWindow bool) error) (err error) {
 	if err = glfw.Init(); chk.E(err) {
 		return
 	}
@@ -103,6 +104,16 @@ func (w *Window) Run(renderFunc func(windowWidth, windowHeight int, mouseX, mous
 		log.D.Ln("Character input:", string(char))
 	})
 
+	// Set cursor enter/leave callback
+	w.window.SetCursorEnterCallback(func(window *glfw.Window, entered bool) {
+		w.cursorInWindow = entered
+		if entered {
+			log.D.Ln("Cursor entered window")
+		} else {
+			log.D.Ln("Cursor left window")
+		}
+	})
+
 	w.running = true
 	for !w.window.ShouldClose() && w.running {
 		// Get window size (logical size in screen coordinates)
@@ -122,7 +133,7 @@ func (w *Window) Run(renderFunc func(windowWidth, windowHeight int, mouseX, mous
 		}
 
 		// Render with window dimensions and mouse position
-		if err = renderFunc(windowWidth, windowHeight, w.mouseX, w.mouseY); chk.E(err) {
+		if err = renderFunc(windowWidth, windowHeight, w.mouseX, w.mouseY, w.cursorInWindow); chk.E(err) {
 			return
 		}
 
@@ -143,12 +154,4 @@ func (w *Window) Stop() {
 // GetWindow returns the underlying GLFW window
 func (w *Window) GetWindow() *glfw.Window {
 	return w.window
-}
-
-// abs returns the absolute value of an integer
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
 }
