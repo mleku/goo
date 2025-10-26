@@ -4,64 +4,64 @@ import (
 	"github.com/go-gl/gl/all-core/gl"
 )
 
-// Fill is a widget that fills its box with a solid color
-type Fill struct {
+// Filler is a widget that fills its box with a solid color
+type Filler struct {
 	color       [4]float32
 	constraints Constraints
 }
 
-// NewFill creates a new Fill widget with the specified color and constraints
-func NewFill(red, green, blue, alpha float32, constraints Constraints) *Fill {
-	return &Fill{
-		color:       [4]float32{red, green, blue, alpha},
-		constraints: constraints,
+// Fill creates a new Fill widget that automatically fills its parent container.
+// If no constraints are provided, uses default flexible constraints to fill the parent.
+func Fill(red, green, blue, alpha float32, constraints ...Constraints) *Filler {
+	var c Constraints
+	if len(constraints) > 0 {
+		c = constraints[0]
+	} else {
+		// Default to filling parent container
+		c = NewFlexConstraints(0, 0, 1e9, 1e9)
 	}
-}
-
-// NewRigidFill creates a rigid Fill widget with fixed dimensions
-func NewRigidFill(red, green, blue, alpha, width, height float32) *Fill {
-	return &Fill{
+	return &Filler{
 		color:       [4]float32{red, green, blue, alpha},
-		constraints: NewRigidConstraints(width, height),
+		constraints: c,
 	}
 }
 
 // NewFlexFill creates a flexible Fill widget with min/max constraints
-func NewFlexFill(red, green, blue, alpha, minWidth, minHeight, maxWidth, maxHeight float32) *Fill {
-	return &Fill{
+func NewFlexFill(red, green, blue, alpha, minWidth, minHeight, maxWidth, maxHeight float32) *Filler {
+	return &Filler{
 		color:       [4]float32{red, green, blue, alpha},
 		constraints: NewFlexConstraints(minWidth, minHeight, maxWidth, maxHeight),
 	}
 }
 
 // NewFlexFillAt creates a flexible Fill widget at a specific position
-func NewFlexFillAt(red, green, blue, alpha, minWidth, minHeight, maxWidth, maxHeight, top, left float32) *Fill {
-	return &Fill{
+func NewFlexFillAt(red, green, blue, alpha, minWidth, minHeight, maxWidth, maxHeight, top, left float32) *Filler {
+	return &Filler{
 		color:       [4]float32{red, green, blue, alpha},
 		constraints: NewFlexConstraintsAt(minWidth, minHeight, maxWidth, maxHeight, top, left),
 	}
 }
 
 // NewRigidFillAt creates a rigid Fill widget at a specific position
-func NewRigidFillAt(red, green, blue, alpha, width, height, top, left float32) *Fill {
-	return &Fill{
+func NewRigidFillAt(red, green, blue, alpha, width, height, top, left float32) *Filler {
+	return &Filler{
 		color:       [4]float32{red, green, blue, alpha},
 		constraints: NewRigidConstraintsAt(width, height, top, left),
 	}
 }
 
 // SetColor updates the fill color
-func (f *Fill) SetColor(red, green, blue, alpha float32) {
+func (f *Filler) SetColor(red, green, blue, alpha float32) {
 	f.color = [4]float32{red, green, blue, alpha}
 }
 
 // GetConstraints returns the size constraints for this Fill widget
-func (f *Fill) GetConstraints() Constraints {
+func (f *Filler) GetConstraints() Constraints {
 	return f.constraints
 }
 
 // Render implements the Widget interface for Fill
-func (f *Fill) Render(ctx *Context, box *Box) (usedSize Size, err error) {
+func (f *Filler) Render(ctx *Context, box *Box) (usedSize Size, err error) {
 	// Set scissor test to clip to the box
 	// Convert from GL coordinates (bottom-left origin) to screen coordinates (top-left origin)
 	// Window height is ctx.WindowHeight, box Y is from top

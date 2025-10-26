@@ -144,18 +144,78 @@ type Container struct {
 	constraints Constraints
 }
 
-// NewContainer creates a new container with the specified direction
-func NewContainer(direction Direction, constraints Constraints) *Container {
+// Row creates a new row container with default flexible constraints.
+// Chain methods like Flex() or Rigid() to add children.
+func Row(constraints ...Constraints) *Container {
+	var c Constraints
+	if len(constraints) > 0 {
+		c = constraints[0]
+	} else {
+		c = NewFlexConstraints(0, 0, 1e9, 1e9)
+	}
 	return &Container{
-		Direction:   direction,
+		Direction:   DirectionRow,
 		Children:    make([]FlexChild, 0),
-		constraints: constraints,
+		constraints: c,
 	}
 }
 
-// AddChild adds a child widget to the container
-func (c *Container) AddChild(child FlexChild) {
+// Column creates a new column container with default flexible constraints.
+// Chain methods like Flex() or Rigid() to add children.
+func Column(constraints ...Constraints) *Container {
+	var c Constraints
+	if len(constraints) > 0 {
+		c = constraints[0]
+	} else {
+		c = NewFlexConstraints(0, 0, 1e9, 1e9)
+	}
+	return &Container{
+		Direction:   DirectionColumn,
+		Children:    make([]FlexChild, 0),
+		constraints: c,
+	}
+}
+
+// NewContainer creates a new container with the specified direction.
+// If no constraints are provided, uses default flexible constraints (0, 0, 1e9, 1e9).
+func NewContainer(direction Direction, constraints ...Constraints) *Container {
+	var c Constraints
+	if len(constraints) > 0 {
+		c = constraints[0]
+	} else {
+		c = NewFlexConstraints(0, 0, 1e9, 1e9)
+	}
+	return &Container{
+		Direction:   direction,
+		Children:    make([]FlexChild, 0),
+		constraints: c,
+	}
+}
+
+// AddChild adds a child widget to the container and returns the container for chaining
+func (c *Container) AddChild(child FlexChild) *Container {
 	c.Children = append(c.Children, child)
+	return c
+}
+
+// Flex adds a flexible child with the specified weight to the container
+func (c *Container) Flex(child Widget, weight float32) *Container {
+	c.Children = append(c.Children, FlexChild{
+		Widget: child,
+		Type:   FlexTypeFlex,
+		Weight: weight,
+	})
+	return c
+}
+
+// Rigid adds a rigid child to the container
+func (c *Container) Rigid(child Widget) *Container {
+	c.Children = append(c.Children, FlexChild{
+		Widget: child,
+		Type:   FlexTypeRigid,
+		Weight: 0,
+	})
+	return c
 }
 
 // GetConstraints returns the container's constraints
@@ -378,17 +438,18 @@ type RootWidget struct {
 	clearColor [4]float32
 }
 
-// NewRootWidget creates a new root widget with the given child
-func NewRootWidget(child Widget) *RootWidget {
+// Root creates a new root widget with the given child
+func Root(child Widget) *RootWidget {
 	return &RootWidget{
 		child:      child,
 		clearColor: [4]float32{0.0, 0.0, 0.0, 1.0}, // Default black
 	}
 }
 
-// SetClearColor sets the background clear color for the root widget
-func (r *RootWidget) SetClearColor(red, green, blue, alpha float32) {
+// SetClearColor sets the background clear color for the root widget and returns the root for chaining
+func (r *RootWidget) SetClearColor(red, green, blue, alpha float32) *RootWidget {
 	r.clearColor = [4]float32{red, green, blue, alpha}
+	return r
 }
 
 // GetConstraints returns unconstrained size (fills canvas)
@@ -459,17 +520,25 @@ type OverlayWidget struct {
 	constraints Constraints
 }
 
-// NewOverlayWidget creates a new overlay widget that renders children in sequence
-func NewOverlayWidget(constraints Constraints) *OverlayWidget {
+// Overlay creates a new overlay widget that renders children in sequence.
+// If no constraints are provided, uses default flexible constraints (0, 0, 1e9, 1e9).
+func Overlay(constraints ...Constraints) *OverlayWidget {
+	var c Constraints
+	if len(constraints) > 0 {
+		c = constraints[0]
+	} else {
+		c = NewFlexConstraints(0, 0, 1e9, 1e9)
+	}
 	return &OverlayWidget{
 		children:    make([]Widget, 0),
-		constraints: constraints,
+		constraints: c,
 	}
 }
 
-// AddChild adds a child widget to be rendered on top of previous children
-func (o *OverlayWidget) AddChild(child Widget) {
+// Child adds a child widget to be rendered on top of previous children and returns the overlay for chaining
+func (o *OverlayWidget) Child(child Widget) *OverlayWidget {
 	o.children = append(o.children, child)
+	return o
 }
 
 // GetConstraints returns the overlay's constraints
@@ -574,13 +643,26 @@ type DirectionWidget struct {
 	constraints Constraints
 }
 
-// NewDirectionWidget creates a new direction widget with the specified gravity
-func NewDirectionWidget(child Widget, gravity Gravity, constraints Constraints) *DirectionWidget {
+// NewDirectionWidget creates a new direction widget with the specified gravity.
+// If no constraints are provided, uses default flexible constraints (0, 0, 1e9, 1e9).
+func NewDirectionWidget(child Widget, gravity Gravity, constraints ...Constraints) *DirectionWidget {
+	var c Constraints
+	if len(constraints) > 0 {
+		c = constraints[0]
+	} else {
+		c = NewFlexConstraints(0, 0, 1e9, 1e9)
+	}
 	return &DirectionWidget{
 		child:       child,
 		gravity:     gravity,
-		constraints: constraints,
+		constraints: c,
 	}
+}
+
+// Center creates a direction widget that centers its child.
+// Equivalent to NewDirectionWidget(child, GravityCenter).
+func Center(child Widget, constraints ...Constraints) *DirectionWidget {
+	return NewDirectionWidget(child, GravityCenter, constraints...)
 }
 
 // GetConstraints returns the direction widget's constraints

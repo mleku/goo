@@ -13,83 +13,31 @@ type WidgetApp struct {
 	rootWidget *widget.RootWidget
 }
 
-// Init initializes the widget tree
+// Init initializes the widget tree using the chained API with inline creation
 func (app *WidgetApp) Init() (err error) {
-	// Create four fill widgets with different colors
-	redFill := widget.NewFlexFill(
-		1.0, 0.0, 0.0, 1.0, // Red color (RGBA)
-		0, 0, // Min width/height (flexible)
-		1e9, 1e9, // Max width/height (very large)
+	app.rootWidget = widget.Root(
+		widget.Overlay().
+			Child(
+				widget.Column().
+					Flex(
+						widget.Row().
+							Flex(widget.Fill(1.0, 0.0, 0.0, 1.0), 1.0).
+							Flex(widget.Fill(1.0, 1.0, 0.0, 1.0), 1.0),
+						1.0,
+					).
+					Flex(
+						widget.Row().
+							Flex(widget.Fill(0.0, 1.0, 0.0, 1.0), 1.0).
+							Flex(widget.Fill(0.0, 0.0, 1.0, 1.0), 1.0),
+						1.0,
+					),
+			).
+			Child(
+				widget.Center(
+					widget.Fill(1.0, 1.0, 1.0, 0.75, widget.NewRigidConstraints(64, 64)),
+				),
+			),
 	)
-
-	yellowFill := widget.NewFlexFill(
-		1.0, 1.0, 0.0, 1.0, // Yellow color (RGBA)
-		0, 0, // Min width/height (flexible)
-		1e9, 1e9, // Max width/height (very large)
-	)
-
-	greenFill := widget.NewFlexFill(
-		0.0, 1.0, 0.0, 1.0, // Green color (RGBA)
-		0, 0, // Min width/height (flexible)
-		1e9, 1e9, // Max width/height (very large)
-	)
-
-	blueFill := widget.NewFlexFill(
-		0.0, 0.0, 1.0, 1.0, // Blue color (RGBA)
-		0, 0, // Min width/height (flexible)
-		1e9, 1e9, // Max width/height (very large)
-	)
-
-	// Create first row container (red and yellow)
-	topRow := widget.NewContainer(
-		widget.DirectionRow,
-		widget.NewFlexConstraints(0, 0, 1e9, 1e9), // Flexible constraints
-	)
-	topRow.AddChild(widget.NewFlexChild(redFill, 1.0))    // Equal weight
-	topRow.AddChild(widget.NewFlexChild(yellowFill, 1.0)) // Equal weight
-
-	// Create second row container (green and blue)
-	bottomRow := widget.NewContainer(
-		widget.DirectionRow,
-		widget.NewFlexConstraints(0, 0, 1e9, 1e9), // Flexible constraints
-	)
-	bottomRow.AddChild(widget.NewFlexChild(greenFill, 1.0)) // Equal weight
-	bottomRow.AddChild(widget.NewFlexChild(blueFill, 1.0))  // Equal weight
-
-	// Create main column container
-	mainColumn := widget.NewContainer(
-		widget.DirectionColumn,
-		widget.NewFlexConstraints(0, 0, 1e9, 1e9), // Flexible constraints
-	)
-	mainColumn.AddChild(widget.NewFlexChild(topRow, 1.0))    // Equal weight
-	mainColumn.AddChild(widget.NewFlexChild(bottomRow, 1.0)) // Equal weight
-
-	// Create a white box with fixed 64x64 size (no position needed)
-	// Using 0.5 alpha to test alpha blending
-	whiteBox := widget.NewRigidFill(
-		1.0, 1.0, 1.0, 0.75, // White with 0.75 alpha
-		64, 64, // Fixed 64x64 size
-	)
-
-	// Wrap the white box in a DirectionWidget with center gravity
-	centeredWhiteBox := widget.NewDirectionWidget(
-		whiteBox,
-		widget.GravityCenter,
-		widget.NewFlexConstraints(0, 0, 1e9, 1e9), // Flexible constraints to fill available space
-	)
-
-	// Create overlay widget to demonstrate overpainting
-	overlay := widget.NewOverlayWidget(
-		widget.NewFlexConstraints(0, 0, 1e9, 1e9), // Flexible constraints
-	)
-
-	// Add the flex layout first (background)
-	overlay.AddChild(mainColumn)
-	// Add the centered white box second (foreground - will paint over the flex layout)
-	overlay.AddChild(centeredWhiteBox)
-
-	// Create root widget with the overlay as child
-	app.rootWidget = widget.NewRootWidget(overlay)
 
 	return
 }
