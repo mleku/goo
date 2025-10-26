@@ -30,25 +30,30 @@ func (f *Filler) GetConstraints() Constraints {
 
 // Render implements the Widget interface for Fill
 func (f *Filler) Render(ctx *Context, box *Box) (usedSize Size, err error) {
-	// Set scissor test to clip to the box
-	// Convert from GL coordinates (bottom-left origin) to screen coordinates (top-left origin)
-	// Window height is ctx.WindowHeight, box Y is from top
-	scissorX := int32(box.Position.X)
-	scissorY := int32(float32(ctx.WindowHeight) - box.Position.Y - box.Size.Height)
-	scissorW := int32(box.Size.Width)
-	scissorH := int32(box.Size.Height)
-	gl.Scissor(scissorX, scissorY, scissorW, scissorH)
+	// Convert to OpenGL coordinates (bottom-left origin) from top-left origin
+	// Box Y is from top, convert to bottom-left
+	bottomY := float32(ctx.WindowHeight) - box.Position.Y - box.Size.Height
 
-	// Set the color
-	gl.Color4f(f.color[0], f.color[1], f.color[2], f.color[3])
-
-	// Create vertices for the quad
+	// Create vertices for the quad (exact pixel boundaries)
 	x1, y1 := box.Position.X, float32(ctx.WindowHeight)-box.Position.Y
 	x2, y2 := box.Position.X+box.Size.Width, float32(ctx.WindowHeight)-box.Position.Y
 	x3, y3 := box.Position.X+box.Size.Width, float32(ctx.WindowHeight)-box.Position.Y-box.Size.Height
 	x4, y4 := box.Position.X, float32(ctx.WindowHeight)-box.Position.Y-box.Size.Height
 
+	// Enable scissor test with proper boundaries to enforce clipping
+	// This prevents artifacts at the edges by ensuring rendering doesn't go beyond boundaries
+	gl.Scissor(
+		int32(box.Position.X),
+		int32(bottomY),
+		int32(box.Size.Width),
+		int32(box.Size.Height),
+	)
+
+	// Set the color
+	gl.Color4f(f.color[0], f.color[1], f.color[2], f.color[3])
+
 	// Draw using immediate mode
+	// The scissor test will clip these vertices to the exact boundaries
 	gl.Begin(gl.QUADS)
 	gl.Vertex2f(x1, y1)
 	gl.Vertex2f(x2, y2)
